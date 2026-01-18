@@ -1,0 +1,5 @@
+services:
+  slides:
+    build: ./slides
+    ports:
+      - "23234:23234"
