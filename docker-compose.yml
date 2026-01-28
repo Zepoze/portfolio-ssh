@@ -5,3 +5,13 @@ services:
       - "23234:23234"
     volumes:
       - ./content/slides.md:/app/slides.md
+  proxy:
+    build: ./proxy
+    ports:
+      - "2222:2222"
+    environment:
+      - TARGET_HOST=slides
+      - TARGET_PORT=23234
+      - LANG=C.UTF-8
+      - TERM=xterm-256color
+    
