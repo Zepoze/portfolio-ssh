@@ -1,0 +1,29 @@
+#!/bin/bash
+set -eux
+
+yum update -y
+amazon-linux-extras install docker -y || yum install -y docker
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+
+systemctl enable docker
+systemctl start docker
+usermod -aG docker ec2-user
+
+# awscli pour login ECR
+yum install -y awscli
+
+REGION="${region}"
+
+aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${ecr_url}"
+
+cat > /etc/docker-compose.yml <<EOF
+${docker_compose}
+EOF
+
+cd /etc
+
+docker compose up -d
