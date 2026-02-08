@@ -5,9 +5,5 @@ terraform {
         source = "hashicorp/aws"
         version = "~> 6.30.0"
     }
-    docker = {
-        source = "kreuzwerker/docker"
-        version = "~> 3.9.0"
-    }
   }
 }

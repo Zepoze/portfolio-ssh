@@ -27,39 +27,8 @@ locals {
   ecr_url     = aws_ecr_repository.app.repository_url
 }
 
-provider "docker" {
-  registry_auth {
-    address  = replace(data.aws_ecr_authorization_token.token.proxy_endpoint, "https://", "")
-    username = data.aws_ecr_authorization_token.token.user_name
-    password = data.aws_ecr_authorization_token.token.password
-  }
-}
 
-resource "docker_image" "slides" {
-  name = "${local.ecr_url}:slides-${tofu.workspace}"
 
-  build {
-    context = "${path.module}/../slides"
-  }
-}
-
-resource "docker_image" "proxy" {
-  name = "${local.ecr_url}:proxy-${tofu.workspace}"
-
-  build {
-    context = "${path.module}/../proxy"
-  }
-}
-
-resource "docker_registry_image" "slides" {
-  name          = docker_image.slides.name
-  keep_remotely = true
-}
-
-resource "docker_registry_image" "proxy" {
-  name          = docker_image.proxy.name
-  keep_remotely = true
-}
 
 data "aws_iam_instance_profile" "ec2_profile" {
   name = var.instance_profile_name
@@ -155,8 +124,6 @@ resource "aws_instance" "app" {
       proxy_image = "${aws_ecr_repository.app.repository_url}:proxy-${tofu.workspace}"
     })
   })
-
-  depends_on = [docker_registry_image.proxy, docker_registry_image.slides]
 
   tags = {
     Name = "${var.app_name}-ec2"
