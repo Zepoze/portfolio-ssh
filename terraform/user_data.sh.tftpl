@@ -17,13 +17,16 @@ usermod -aG docker ec2-user
 yum install -y awscli
 
 REGION="${region}"
-
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${ecr_url}"
 
-cat > /etc/docker-compose.yml <<EOF
+mkdir -p /opt/portfolio
+
+cat > /opt/portfolio/docker-compose.yml <<'EOF'
 ${docker_compose}
 EOF
 
-cd /etc
+cat > /opt/portfolio/deploy.sh <<'EOF'
+${deploy_script}
+EOF
 
-docker compose up -d
+chmod +x /opt/portfolio/deploy.sh

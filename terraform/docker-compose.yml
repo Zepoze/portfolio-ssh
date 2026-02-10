@@ -1,12 +1,12 @@
 services:
   slides:
-    image: ${slides_image}
+    image: ${SLIDES_IMAGE}
     ports:
       - "23234:23234"
     #volumes:
       #- ./content/slides.md:/app/slides.md
   proxy:
-    image: ${proxy_image}
+    image: ${PROXY_IMAGE}
     ports:
       - "2222:2222"
     environment:

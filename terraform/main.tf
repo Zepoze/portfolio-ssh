@@ -83,10 +83,17 @@ resource "aws_iam_role_policy_attachment" "ec2_role_policy" {
   policy_arn = aws_iam_policy.ecr_read_only.arn
 }
 
+resource "aws_iam_role_policy_attachment" "ec2_role_policy_ssm" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "tf-${var.app_name}-ec2-profile-${tofu.workspace}"
   role = aws_iam_role.ec2_role.name
 }
+
+
 
 # AMI Amazon Linux 2
 data "aws_ami" "al2" {
@@ -119,13 +126,21 @@ resource "aws_instance" "app" {
   user_data = templatefile("${path.module}/user_data.sh.tftpl",{
     region = var.region
     ecr_url = local.ecr_url
-    docker_compose = templatefile("${path.module}/docker-compose.yml.tftpl",{
-      slides_image = "${aws_ecr_repository.app.repository_url}:slides-${tofu.workspace}"
-      proxy_image = "${aws_ecr_repository.app.repository_url}:proxy-${tofu.workspace}"
+    docker_compose = file("${path.module}/docker-compose.yml")
+    deploy_script = templatefile("${path.module}/deploy.tftpl.sh",{
+      channel = tofu.workspace
+      ecr_url = local.ecr_url
     })
   })
 
   tags = {
     Name = "${var.app_name}-ec2"
+    App = "${var.app_name}"
   }
+}
+
+output "ec_instance_id" {
+  value = (var.active && tofu.workspace == "dev" || tofu.workspace != "dev") ? aws_instance.app[0].id : null
+  description = "ID of the EC2 instance"
+  
 }
