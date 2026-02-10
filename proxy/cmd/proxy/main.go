@@ -25,6 +25,7 @@ func main() {
 		host,
 		port,
 		os.Getenv("SSH_HOST_KEY"),
+		os.Getenv("SSH_TRUSTED_USERS_CA"),
 	)
 	if err != nil {
 		os.Exit(1)

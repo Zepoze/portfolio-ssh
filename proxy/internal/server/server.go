@@ -18,7 +18,7 @@ const (
 	defaultHostKeyPath = "ssh_host_key"
 )
 
-func Run(ctx context.Context, host, port string, hostKeyPath string) error {
+func Run(ctx context.Context, host, port string, hostKeyPath string, trustedCAPublicKeyPath string) error {
 
 	if hostKeyPath == "" {
 		hostKeyPath = defaultHostKeyPath
@@ -38,6 +38,17 @@ func Run(ctx context.Context, host, port string, hostKeyPath string) error {
 			logging.Middleware(),
 		),
 		wish.WithHostKeyPath(hostKeyPath),
+	}
+
+	if trustedCAPublicKeyPath != "" {
+		if _, err := os.Stat(trustedCAPublicKeyPath); err != nil {
+			err = errors.New("trusted user CA public key not found")
+			cancel(err)
+			return err
+		} else {
+			log.Info("Using trusted user CA public key", "path", trustedCAPublicKeyPath)
+			options = append(options, wish.WithTrustedUserCAKeys(trustedCAPublicKeyPath))
+		}
 	}
 
 	srv, err := wish.NewServer(
