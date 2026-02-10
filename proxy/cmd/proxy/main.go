@@ -28,6 +28,7 @@ func main() {
 		os.Getenv("SSH_TRUSTED_USERS_CA"),
 	)
 	if err != nil {
+		log.Error("Error running server", "error", err)
 		os.Exit(1)
 	}
 
