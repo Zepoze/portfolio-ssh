@@ -20,7 +20,12 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	err := server.Run(ctx, host, port)
+	err := server.Run(
+		ctx,
+		host,
+		port,
+		os.Getenv("SSH_HOST_KEY"),
+	)
 	if err != nil {
 		os.Exit(1)
 	}

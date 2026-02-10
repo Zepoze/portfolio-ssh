@@ -18,9 +18,13 @@ const (
 	defaultHostKeyPath = "ssh_host_key"
 )
 
-func Run(ctx context.Context, host, port string) error {
+func Run(ctx context.Context, host, port string, hostKeyPath string) error {
 
-	err := ensureHostKeyExistence(os.Getenv("STRICT") != "")
+	if hostKeyPath == "" {
+		hostKeyPath = defaultHostKeyPath
+	}
+
+	err := ensureHostKeyExistence(hostKeyPath, os.Getenv("STRICT") != "")
 	if err != nil {
 		return err
 	}
@@ -33,7 +37,7 @@ func Run(ctx context.Context, host, port string) error {
 			ProxyMiddlewareProgram(globalCtx.Done()),
 			logging.Middleware(),
 		),
-		wish.WithHostKeyPath(defaultHostKeyPath),
+		wish.WithHostKeyPath(hostKeyPath),
 	}
 
 	srv, err := wish.NewServer(
@@ -71,8 +75,8 @@ func Run(ctx context.Context, host, port string) error {
 	return nil
 }
 
-func ensureHostKeyExistence(strict bool) error {
-	_, err := os.Stat(defaultHostKeyPath)
+func ensureHostKeyExistence(hostKeyPath string, strict bool) error {
+	_, err := os.Stat(hostKeyPath)
 	if strict {
 		if err != nil {
 			err := errors.New("no host key found, refusing to start in STRICT mode")
