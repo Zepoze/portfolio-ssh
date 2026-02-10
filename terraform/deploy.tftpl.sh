@@ -4,10 +4,11 @@ set -euo pipefail
 cd /opt/portfolio
 
 CHANNEL="${channel}" # dev|prod
-ECR_REGISTRY="${ecr_url}"
+ECR_REGISTRY_SLIDES="${ecr_url["slides"]}"
+ECR_REGISTRY_PROXY="${ecr_url["proxy"]}"
 
-export SLIDES_IMAGE="$ECR_REGISTRY:slides-$CHANNEL"
-export PROXY_IMAGE="$ECR_REGISTRY:proxy-$CHANNEL"
+export SLIDES_IMAGE="$ECR_REGISTRY_SLIDES:$CHANNEL"
+export PROXY_IMAGE="$ECR_REGISTRY_PROXY:$CHANNEL"
 
 docker compose down
 docker compose pull

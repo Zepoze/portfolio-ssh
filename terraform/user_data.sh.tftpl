@@ -17,7 +17,8 @@ usermod -aG docker ec2-user
 yum install -y awscli
 
 REGION="${region}"
-aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${ecr_url}"
+aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${ecr_url["slides"]}"
+aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${ecr_url["proxy"]}"
 
 mkdir -p /opt/portfolio
 

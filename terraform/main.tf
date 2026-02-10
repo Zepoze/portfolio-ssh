@@ -9,9 +9,14 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  app_repos = toset(["slides","proxy"])
+}
+
 # --- 1) ECR repo ---
 resource "aws_ecr_repository" "app" {
-  name                 = "tf-${var.app_name}-ecr"
+  for_each             =  local.app_repos
+  name                 = "tf-${var.app_name}-${each.key}-ecr"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -24,7 +29,9 @@ data "aws_ecr_authorization_token" "token" {}
 
 # Exemple d'URL: https://1234567890.dkr.ecr.eu-west-3.amazonaws.com
 locals {
-  ecr_url     = aws_ecr_repository.app.repository_url
+  ecr_url = {
+    for k,v in local.app_repos : k=> aws_ecr_repository.app[k].repository_url
+  }
 }
 
 
@@ -53,7 +60,8 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_policy" "ecr_read_only" {
-  name        = "tf-${var.app_name}-ecr-read-only-policy-${tofu.workspace}"
+  for_each = local.app_repos
+  name        = "tf-${var.app_name}-${each.key}-ecr-read-only-policy-${tofu.workspace}"
   description = "Policy to allow read-only access to ECR for EC2 instances"
   policy      = jsonencode({
     Version = "2012-10-17"
@@ -65,7 +73,7 @@ resource "aws_iam_policy" "ecr_read_only" {
           "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability",
         ]
-        Resource = aws_ecr_repository.app.arn
+        Resource = aws_ecr_repository.app[each.key].arn
       },
       {
         Effect = "Allow"
@@ -79,8 +87,9 @@ resource "aws_iam_policy" "ecr_read_only" {
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_role_policy" {
+  for_each = local.app_repos
   role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.ecr_read_only.arn
+  policy_arn = aws_iam_policy.ecr_read_only[each.key].arn
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_role_policy_ssm" {
