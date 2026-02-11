@@ -1,9 +1,8 @@
 provider "aws" {
   region = var.region
-  /*assume_role {
+  assume_role {
     role_arn = "arn:aws:iam::160927904376:role/tf-role-zshowcase-portfolio-ssh"
   }
-  */
 }
 
 
@@ -32,13 +31,6 @@ locals {
   ecr_url = {
     for k,v in local.app_repos : k=> aws_ecr_repository.app[k].repository_url
   }
-}
-
-
-
-
-data "aws_iam_instance_profile" "ec2_profile" {
-  name = var.instance_profile_name
 }
 
 resource "aws_iam_role" "ec2_role" {
@@ -129,7 +121,6 @@ resource "aws_instance" "app" {
     encrypted             = true
   }
 
-  #iam_instance_profile = data.aws_iam_instance_profile.ec2_profile.name
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl",{

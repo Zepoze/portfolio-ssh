@@ -1,5 +1,8 @@
 terraform {
   backend "s3" {
+    assume_role = {
+      role_arn = "arn:aws:iam::160927904376:role/tf-role-zshowcase-portfolio-ssh"
+    }
     bucket = "tfstate-zshowcase-eu-west-3"
     key    = "terraform.tfstate"
     region = "eu-west-3"

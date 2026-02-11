@@ -13,11 +13,6 @@ variable "instance_type" {
   default = "t3.micro"
 }
 
-variable "instance_profile_name" {
-  type = string
-  default = "ssh-portfolio-ecs-ec2-role"
-}
-
 # Optionnel: si tu veux SSH, ajoute une key pair existante et décommente dans main.tf
 variable "key_name" {
   type    = string
