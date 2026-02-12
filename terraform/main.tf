@@ -51,6 +51,27 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
+resource "aws_iam_policy" "ecr_login" {
+  name = "tf-${var.app_name}-ecr-login"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_role_ecr_login" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.ecr_login.arn
+}
+
 resource "aws_iam_policy" "ecr_read_only" {
   for_each = local.app_repos
   name        = "tf-${var.app_name}-${each.key}-ecr-read-only-policy-${tofu.workspace}"
@@ -66,13 +87,6 @@ resource "aws_iam_policy" "ecr_read_only" {
           "ecr:BatchCheckLayerAvailability",
         ]
         Resource = aws_ecr_repository.app[each.key].arn
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken"
-        ]
-        Resource = "*"
       }
     ]
   })
