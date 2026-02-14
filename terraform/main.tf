@@ -148,7 +148,7 @@ resource "aws_instance" "app" {
   })
 
   tags = {
-    Name = "${var.app_name}-ec2"
+    Name = "${var.app_name}-ec2-${tofu.workspace}"
     App = "${var.app_name}"
   }
 }
