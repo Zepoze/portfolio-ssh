@@ -139,10 +139,11 @@ resource "aws_instance" "app" {
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl",{
     region = var.region
-    ecr_url = local.ecr_url
     docker_compose = file("${path.module}/docker-compose.yml")
     deploy_script = templatefile("${path.module}/deploy.tftpl.sh",{
       channel = tofu.workspace
+      ecr_url = local.ecr_url
+      region = var.region
       ecr_url = local.ecr_url
     })
   })
