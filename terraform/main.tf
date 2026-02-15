@@ -103,6 +103,27 @@ resource "aws_iam_role_policy_attachment" "ec2_role_policy_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_policy" "secret_sshost" {
+  name        = "tf-${var.app_name}-getsecret-sshhost-policy-${tofu.workspace}"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = "arn:aws:secretsmanager:eu-west-3:160927904376:secret:portfolio-ssh/${tofu.workspace}/ssh_hostkey*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_role_secret" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.secret_sshost.arn
+}
+
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "tf-${var.app_name}-ec2-profile-${tofu.workspace}"
   role = aws_iam_role.ec2_role.name
@@ -145,6 +166,10 @@ resource "aws_instance" "app" {
       ecr_url = local.ecr_url
       region = var.region
       ecr_url = local.ecr_url
+    })
+    update_proxy_host_key_script = templatefile("${path.module}/update_ssh_hostkey.tftpl.sh",{
+      secred_id = aws_secretsmanager_secret.ssh_hostkey.arn
+      region = var.region
     })
   })
 

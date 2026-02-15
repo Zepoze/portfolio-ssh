@@ -3,6 +3,7 @@ set -eux
 
 yum update -y
 amazon-linux-extras install docker -y || yum install -y docker
+yum install -y jq
 sudo mkdir -p /usr/local/lib/docker/cli-plugins
 sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
   -o /usr/local/lib/docker/cli-plugins/docker-compose
@@ -19,6 +20,7 @@ yum install -y awscli
 REGION="${region}"
 
 mkdir -p /opt/portfolio
+mkdir -p /opt/portfolio/proxy
 
 cat > /opt/portfolio/docker-compose.yml <<'EOF'
 ${docker_compose}
@@ -28,6 +30,12 @@ cat > /opt/portfolio/deploy.sh <<'EOF'
 ${deploy_script}
 EOF
 
+cat > /opt/portfolio/update_proxy_host.sh << 'EOF'
+${update_proxy_host_key_script}
+EOF
+
+chmod +x /opt/portfolio/update_proxy_host.sh
 chmod +x /opt/portfolio/deploy.sh
 
+/opt/portfolio/update_proxy_host.sh
 /opt/portfolio/deploy.sh
