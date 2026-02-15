@@ -154,6 +154,17 @@ resource "aws_instance" "app" {
   }
 }
 
+resource "aws_secretsmanager_secret" "ssh_hostkey" {
+  name        = "portfolio-ssh/${tofu.workspace}/ssh_hostkey"
+  description = "SSH host key for myapp ${tofu.workspace}"
+
+  tags = {
+    App = "portfolio-ssh"
+    Env = "${tofu.workspace}"
+  }
+}
+
+
 output "ec_instance_id" {
   value = (var.active && tofu.workspace == "dev" || tofu.workspace != "dev") ? aws_instance.app[0].id : null
   description = "ID of the EC2 instance"
