@@ -9,9 +9,13 @@ services:
     image: ${PROXY_IMAGE}
     ports:
       - "2222:2222"
+    volumes:
+      - ./proxy:/workspace
     environment:
       - TARGET_HOST=slides
       - TARGET_PORT=23234
       - LANG=C.UTF-8
       - TERM=xterm-256color
+      - SSH_HOST_KEY=/workspace/ssh_host_key
+      - STRICT=${STRICT}
     

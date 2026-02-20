@@ -8,6 +8,13 @@ REGION="${region}"
 ECR_REGISTRY_SLIDES="${ecr_url["slides"]}"
 ECR_REGISTRY_PROXY="${ecr_url["proxy"]}"
 
+if [ ! "$CHANNEL" = "dev" ]; then
+    export STRICT=1
+elif [ ! -f "proxy/ssh_host_key" ]; then
+    echo "No ssh host key found"
+    exit 1
+fi
+
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY_SLIDES"
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY_PROXY"
 

@@ -18,6 +18,7 @@ usermod -aG docker ec2-user
 yum install -y awscli
 
 REGION="${region}"
+CHANNEL="${channel}"
 
 mkdir -p /opt/portfolio
 mkdir -p /opt/portfolio/proxy
@@ -37,5 +38,9 @@ EOF
 chmod +x /opt/portfolio/update_proxy_host.sh
 chmod +x /opt/portfolio/deploy.sh
 
-/opt/portfolio/update_proxy_host.sh
+if [ "$CHANNEL" = "dev" ]; then
+  /opt/portfolio/update_proxy_host.sh || true
+else
+  /opt/portfolio/update_proxy_host.sh
+fi
 /opt/portfolio/deploy.sh
