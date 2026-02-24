@@ -27,6 +27,20 @@ cat > /opt/portfolio/docker-compose.yml <<'EOF'
 ${docker_compose}
 EOF
 
+cat > /opt/portfolio/.env << EOF
+CHANNEL="${channel}" # dev|prod
+REGION="${region}"
+ECR_REGISTRY_SLIDES="${ecr_url["slides"]}"
+ECR_REGISTRY_PROXY="${ecr_url["proxy"]}"
+SLIDES_IMAGE="${ecr_url["slides"]}:${channel}"
+PROXY_IMAGE="${ecr_url["proxy"]}:${channel}"
+SSH_HOST_KEY_SECRET_ID="${ssh_host_key_secret_id}"
+EOF
+
+if [ ! "${channel}" = "dev" ]; then
+    echo 'STRICT=1' >> /opt/portfolio/.env
+fi
+
 cat > /opt/portfolio/deploy.sh <<'EOF'
 ${deploy_script}
 EOF

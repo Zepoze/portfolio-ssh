@@ -161,17 +161,12 @@ resource "aws_instance" "app" {
   user_data = templatefile("${path.module}/user_data.sh.tftpl",{
     region = var.region
     channel = tofu.workspace
+    region = var.region
+    ecr_url = local.ecr_url
     docker_compose = file("${path.module}/docker-compose.yml")
-    deploy_script = templatefile("${path.module}/deploy.tftpl.sh",{
-      channel = tofu.workspace
-      ecr_url = local.ecr_url
-      region = var.region
-      ecr_url = local.ecr_url
-    })
-    update_proxy_host_key_script = templatefile("${path.module}/update_ssh_hostkey.tftpl.sh",{
-      secred_id = aws_secretsmanager_secret.ssh_hostkey.arn
-      region = var.region
-    })
+    deploy_script = file("${path.module}/deploy.sh")
+    ssh_host_key_secret_id = aws_secretsmanager_secret.ssh_hostkey.arn
+    update_proxy_host_key_script = file("${path.module}/update_ssh_hostkey.sh")
   })
 
   tags = {

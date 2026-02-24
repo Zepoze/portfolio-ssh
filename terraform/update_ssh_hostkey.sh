@@ -1,9 +1,8 @@
 #!/bin/bash
 set -euo pipefail
-
-# ================= CONFIG =================
-AWS_REGION="${region}"
-SECRET_ID="${secred_id}"
+set -a
+source "$(dirname "$0")/.env"
+set +a
 
 mkdir -p /opt/portfolio/proxy || true
 
@@ -16,8 +15,8 @@ echo "Starting SSH host key bootstrap..."
 echo "Fetching secret from Secrets Manager..."
 
 SECRET_JSON="$(aws secretsmanager get-secret-value \
-  --region "$AWS_REGION" \
-  --secret-id "$SECRET_ID" \
+  --region "$REGION" \
+  --secret-id "$SSH_HOST_KEY_SECRET_ID" \
   --query SecretString \
   --output text)"
 
