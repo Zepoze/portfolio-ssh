@@ -9,9 +9,12 @@ services:
     build: ./proxy
     ports:
       - "2222:2222"
+    volumes:
+      - ${VOLUME_PROXY_SSH_HOST_KEY:-/dev/null}:/workspace/ssh_user_ca_key.pub
     environment:
       - TARGET_HOST=slides
       - TARGET_PORT=23234
       - LANG=C.UTF-8
       - TERM=xterm-256color
+      - SSH_TRUSTED_USERS_CA=${SSH_TRUSTED_USERS_CA}
     
