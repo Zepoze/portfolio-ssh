@@ -3,8 +3,8 @@ services:
     image: ${SLIDES_IMAGE}
     ports:
       - "23234:23234"
-    #volumes:
-      #- ./content/slides.md:/app/slides.md
+    volumes:
+      - ./slides:/app
   proxy:
     image: ${PROXY_IMAGE}
     ports:

@@ -124,6 +124,37 @@ resource "aws_iam_role_policy_attachment" "ec2_role_secret" {
   policy_arn = aws_iam_policy.secret_sshost.arn
 }
 
+resource "aws_iam_policy" "s3_artefect_ro" {
+  name        = "tf-${var.app_name}-artefacts_ro-${tofu.workspace}"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = "arn:aws:s3:::tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${tofu.workspace}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = "arn:aws:s3:::tfartefacts-zshowcase-eu-west-3"
+        Condition = {
+          StringLike = {
+            "s3:prefix" = ["arn:aws:s3:::tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${tofu.workspace}/*"]
+          }
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_role_artefacts_s3" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.s3_artefect_ro.arn
+}
+
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "tf-${var.app_name}-ec2-profile-${tofu.workspace}"
   role = aws_iam_role.ec2_role.name
@@ -167,6 +198,7 @@ resource "aws_instance" "app" {
     deploy_script = file("${path.module}/deploy.sh")
     ssh_host_key_secret_id = aws_secretsmanager_secret.ssh_hostkey.arn
     update_proxy_host_key_script = file("${path.module}/update_ssh_hostkey.sh")
+    artefact_bucket_folder = "tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${tofu.workspace}"
   })
 
   tags = {

@@ -22,6 +22,7 @@ CHANNEL="${channel}"
 
 mkdir -p /opt/portfolio
 mkdir -p /opt/portfolio/proxy
+mkdir -p /opt/portfolio/slides
 
 cat > /opt/portfolio/docker-compose.yml <<'EOF'
 ${docker_compose}
@@ -35,6 +36,7 @@ ECR_REGISTRY_PROXY="${ecr_url["proxy"]}"
 SLIDES_IMAGE="${ecr_url["slides"]}:${channel}"
 PROXY_IMAGE="${ecr_url["proxy"]}:${channel}"
 SSH_HOST_KEY_SECRET_ID="${ssh_host_key_secret_id}"
+ARTEFACT_BUCKET_FOLDER="${artefact_bucket_folder}"
 EOF
 
 if [ ! "${channel}" = "dev" ]; then
