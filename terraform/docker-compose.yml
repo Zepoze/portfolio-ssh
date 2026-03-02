@@ -18,4 +18,5 @@ services:
       - TERM=xterm-256color
       - SSH_HOST_KEY=/workspace/ssh_host_key
       - STRICT=${STRICT}
+      - SSH_TRUSTED_USERS_CA=${SSH_TRUSTED_USERS_CA}
     
