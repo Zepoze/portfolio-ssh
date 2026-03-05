@@ -36,7 +36,7 @@ jobs:
 
           if [[ "$GITHUB_REF" == refs/heads/develop ]]; then
             # Develop → commit précédent
-            echo "base=${GITHUB_EVENT_BEFORE}" >> $GITHUB_OUTPUT
+            echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
 
           elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             # Main → push d’un tag v*
@@ -49,12 +49,12 @@ jobs:
               echo "base=$BASE" >> $GITHUB_OUTPUT
             else
               # Pas de tag précédent → on prend le commit précédent du tag
-              echo "base=${GITHUB_EVENT_BEFORE}" >> $GITHUB_OUTPUT
+              echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
             fi
 
           elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
             # Main normal → commit précédent
-            echo "base=${GITHUB_EVENT_BEFORE}" >> $GITHUB_OUTPUT
+            echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
           fi
       - uses: dorny/paths-filter@v3
         id: changes
