@@ -27,6 +27,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            docker:
+              - 'proxy/**'
+              - 'slides/**'
+
+            content:
+              - 'content/**'
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -35,18 +46,21 @@ jobs:
           role-to-assume: ${{vars.AWS_ROLE_ARN}}
 
       - name: Build & push Docker image
+        if: steps.changes.outputs.docker == 'true'
         shell: bash
         run: |
           set -euo pipefail
           ./scripts/build_push.sh $CHANNEL
 
       - name: Update slides content
+        if: steps.changes.outputs.content == 'true'
         shell: bash
         run: |
           set -euo pipefail
           ./scripts/upload_slides_content.sh
 
       - name: Deploy via AWS SSM
+        if: steps.changes.outputs.docker == 'true' || steps.changes.outputs.content == 'true'
         shell: bash
         run: |
           set -euo pipefail
