@@ -26,10 +26,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Determine base commit
+        id: base
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          TAG="${GITHUB_REF#refs/tags/}"
 
+          if [[ "$GITHUB_REF" == refs/heads/develop ]]; then
+            # Develop → commit précédent
+            echo "base=${GITHUB_EVENT_BEFORE}" >> $GITHUB_OUTPUT
+
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            # Main → push d’un tag v*
+            # On récupère les tags existants triés par date décroissante
+            LAST_TAG=$(git tag --list "v*" --sort=-creatordate | sed -n '2p')
+
+            if [[ -n "$LAST_TAG" ]]; then
+              # S'il existe un tag précédent → on prend ce tag
+              BASE=$(git rev-list -n 1 "$LAST_TAG")
+              echo "base=$BASE" >> $GITHUB_OUTPUT
+            else
+              # Pas de tag précédent → on prend le commit précédent du tag
+              echo "base=${GITHUB_EVENT_BEFORE}" >> $GITHUB_OUTPUT
+            fi
+
+          elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
+            # Main normal → commit précédent
+            echo "base=${GITHUB_EVENT_BEFORE}" >> $GITHUB_OUTPUT
+          fi
       - uses: dorny/paths-filter@v3
         id: changes
         with:
+          base: ${{ steps.base.outputs.base }}
           filters: |
             docker:
               - 'proxy/**'
