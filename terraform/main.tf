@@ -31,11 +31,12 @@ locals {
   ecr_url = {
     for k,v in local.app_repos : k=> aws_ecr_repository.app[k].repository_url
   }
+  environment = toset(["dev","staging","prod"])
 }
 
 resource "aws_iam_role" "ec2_role" {
-
-  name = "tf-${var.app_name}-ec2-role-${tofu.workspace}"
+  for_each = local.environment
+  name = "tf-${var.app_name}-ec2-role-${each.key}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -68,13 +69,14 @@ resource "aws_iam_policy" "ecr_login" {
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_role_ecr_login" {
-  role       = aws_iam_role.ec2_role.name
+  for_each = local.environment
+  role       = aws_iam_role.ec2_role[each.key].name
   policy_arn = aws_iam_policy.ecr_login.arn
 }
 
 resource "aws_iam_policy" "ecr_read_only" {
   for_each = local.app_repos
-  name        = "tf-${var.app_name}-${each.key}-ecr-read-only-policy-${tofu.workspace}"
+  name        = "tf-${var.app_name}-${each.key}-ecr-read-only-policy"
   description = "Policy to allow read-only access to ECR for EC2 instances"
   policy      = jsonencode({
     Version = "2012-10-17"
@@ -92,19 +94,38 @@ resource "aws_iam_policy" "ecr_read_only" {
   })
 }
 
+locals {
+  env_app_repos = {
+    for env in local.environment :
+    env => local.app_repos
+  }
+}
+
 resource "aws_iam_role_policy_attachment" "ec2_role_policy" {
-  for_each = local.app_repos
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.ecr_read_only[each.key].arn
+  for_each = {
+    for pair in flatten([
+      for env, apps in local.env_app_repos : [
+        for app in apps : {
+          key   = "${env}-${app}"
+          env = env
+          app  = app
+        }
+      ]
+    ]) : pair.key => pair
+  }
+  role       = aws_iam_role.ec2_role[each.value.env].name
+  policy_arn = aws_iam_policy.ecr_read_only[each.value.app].arn
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_role_policy_ssm" {
-  role       = aws_iam_role.ec2_role.name
+  for_each = local.environment
+  role       = aws_iam_role.ec2_role[each.key].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_policy" "secret_sshost" {
-  name        = "tf-${var.app_name}-getsecret-sshhost-policy-${tofu.workspace}"
+  for_each = local.environment
+  name        = "tf-${var.app_name}-getsecret-sshhost-policy-${each.key}"
   policy      = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -113,19 +134,21 @@ resource "aws_iam_policy" "secret_sshost" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = "arn:aws:secretsmanager:eu-west-3:160927904376:secret:portfolio-ssh/${tofu.workspace}/ssh_hostkey*"
+        Resource = "arn:aws:secretsmanager:eu-west-3:160927904376:secret:portfolio-ssh/${each.key}/ssh_hostkey*"
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_role_secret" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.secret_sshost.arn
+  for_each = local.environment
+  role       = aws_iam_role.ec2_role[each.key].name
+  policy_arn = aws_iam_policy.secret_sshost[each.key].arn
 }
 
 resource "aws_iam_policy" "s3_artefect_ro" {
-  name        = "tf-${var.app_name}-artefacts_ro-${tofu.workspace}"
+  for_each = local.environment
+  name        = "tf-${var.app_name}-artefacts_ro-${each.key}"
   policy      = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -134,7 +157,7 @@ resource "aws_iam_policy" "s3_artefect_ro" {
         Action = [
           "s3:GetObject"
         ]
-        Resource = "arn:aws:s3:::tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${tofu.workspace}/*"
+        Resource = "arn:aws:s3:::tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${each.key}/*"
       },
       {
         Effect   = "Allow"
@@ -142,7 +165,7 @@ resource "aws_iam_policy" "s3_artefect_ro" {
         Resource = "arn:aws:s3:::tfartefacts-zshowcase-eu-west-3"
         Condition = {
           StringLike = {
-            "s3:prefix" = ["arn:aws:s3:::tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${tofu.workspace}/*"]
+            "s3:prefix" = ["arn:aws:s3:::tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${each.key}/*"]
           }
         }
       },
@@ -151,13 +174,15 @@ resource "aws_iam_policy" "s3_artefect_ro" {
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_role_artefacts_s3" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.s3_artefect_ro.arn
+  for_each = local.environment
+  role       = aws_iam_role.ec2_role[each.key].name
+  policy_arn = aws_iam_policy.s3_artefect_ro[each.key].arn
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "tf-${var.app_name}-ec2-profile-${tofu.workspace}"
-  role = aws_iam_role.ec2_role.name
+  for_each = local.environment
+  name = "tf-${var.app_name}-ec2-profile-${each.key}"
+  role = aws_iam_role.ec2_role[each.key].name
 }
 
 
@@ -175,7 +200,7 @@ data "aws_ami" "al2" {
 
 # EC2 Instance
 resource "aws_instance" "app" {
-  count = var.active && tofu.workspace == "dev" ? 1 : 0
+  for_each = local.environment
 
   ami           = data.aws_ami.al2.id
   instance_type = "t3.micro"
@@ -187,39 +212,35 @@ resource "aws_instance" "app" {
     encrypted             = true
   }
 
-  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile[each.key].name
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl",{
     region = var.region
-    channel = tofu.workspace
+    channel = each.key
     region = var.region
     ecr_url = local.ecr_url
     docker_compose = file("${path.module}/docker-compose.yml")
     deploy_script = file("${path.module}/deploy.sh")
-    ssh_host_key_secret_id = aws_secretsmanager_secret.ssh_hostkey.arn
+    ssh_host_key_secret_id = aws_secretsmanager_secret.ssh_hostkey[each.key].arn
     update_proxy_host_key_script = file("${path.module}/update_ssh_hostkey.sh")
-    artefact_bucket_folder = "tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${tofu.workspace}"
+    artefact_bucket_folder = "tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${each.key}"
   })
 
   tags = {
-    Name = "${var.app_name}-ec2-${tofu.workspace}"
+    Name = "${var.app_name}-ec2-${each.key}"
     App = "${var.app_name}"
   }
 }
 
 resource "aws_secretsmanager_secret" "ssh_hostkey" {
-  name        = "portfolio-ssh/${tofu.workspace}/ssh_hostkey"
-  description = "SSH host key for myapp ${tofu.workspace}"
+  for_each = local.environment
+  name        = "portfolio-ssh/${each.key}/ssh_hostkey"
+  description = "SSH host key for myapp ${each.key} environment"
 
   tags = {
     App = "portfolio-ssh"
-    Env = "${tofu.workspace}"
+    Env = "${each.key}"
   }
 }
 
 
-output "ec_instance_id" {
-  value = (var.active && tofu.workspace == "dev" || tofu.workspace != "dev") ? aws_instance.app[0].id : null
-  description = "ID of the EC2 instance"
-  
-}
