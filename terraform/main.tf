@@ -185,7 +185,46 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_role[each.key].name
 }
 
+data "aws_vpc" "default" {
+  default = true
+}
 
+resource "aws_security_group" "staging_sg" {
+  name        = "staging-sg"
+  description = "Allow SSH traffic"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "Allow port 2222 from internet"
+    from_port   = 2222
+    to_port     = 2222
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]   # accessible depuis Internet
+  }
+
+  ingress {
+    description = "Allow all vpc traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = [data.aws_vpc.default.cidr_block]
+  }
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+data "aws_subnets" "vpc_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
 
 # AMI Amazon Linux 2
 data "aws_ami" "al2" {
@@ -225,6 +264,12 @@ resource "aws_instance" "app" {
     update_proxy_host_key_script = file("${path.module}/update_ssh_hostkey.sh")
     artefact_bucket_folder = "tfartefacts-zshowcase-eu-west-3/artefacts/portfolio-ssh/${each.key}"
   })
+
+  subnet_id = element(data.aws_subnets.vpc_subnets.ids, 0)
+
+  vpc_security_group_ids = each.key == "staging" ? [
+    aws_security_group.staging_sg.id
+  ] : null
 
   tags = {
     Name = "${var.app_name}-ec2-${each.key}"
