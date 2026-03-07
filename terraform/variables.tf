@@ -23,3 +23,8 @@ variable "active" {
   type = bool
   default = true  
 }
+
+variable "domaine_name" {
+  type = string
+  default = "zepoze.fr"
+}

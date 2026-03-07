@@ -288,4 +288,15 @@ resource "aws_secretsmanager_secret" "ssh_hostkey" {
   }
 }
 
+# Route 53
+resource "aws_route53_zone" "main" {
+  name = var.domaine_name
+}
 
+resource "aws_route53_record" "app_record" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "portfolio-ssh.staging.${aws_route53_zone.main.name}"
+  type    = "A"
+  ttl     = 300
+  records = [aws_instance.app["staging"].public_ip]
+}
