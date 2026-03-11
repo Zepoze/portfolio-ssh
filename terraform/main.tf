@@ -310,6 +310,15 @@ resource "aws_instance" "app" {
   }
 }
 
+# EIP for prod
+resource "aws_eip" "prod" {
+}
+
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.app["prod"].id
+  allocation_id = aws_eip.prod.id
+}
+
 resource "aws_secretsmanager_secret" "ssh_hostkey" {
   for_each = local.environment
   name        = "portfolio-ssh/${each.key}/ssh_hostkey"
@@ -339,5 +348,5 @@ resource "aws_route53_record" "app_record_prod" {
   name    = "portfolio-ssh.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = 300
-  records = [aws_instance.app["prod"].public_ip]
+  records = [aws_eip.prod.public_ip]
 }
