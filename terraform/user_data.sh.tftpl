@@ -20,6 +20,12 @@ yum install -y awscli
 REGION="${region}"
 CHANNEL="${channel}"
 
+if [ "${channel}" = "prod" ]; then
+    echo 'Port 2222' >> /etc/ssh/sshd_config
+    systemctl disable --now sshd.socket
+    systemctl restart sshd
+fi
+
 mkdir -p /opt/portfolio
 mkdir -p /opt/portfolio/proxy
 mkdir -p /opt/portfolio/slides
@@ -41,6 +47,12 @@ EOF
 
 if [ ! "${channel}" = "dev" ]; then
     echo 'STRICT=1' >> /opt/portfolio/.env
+fi
+
+if [ "${channel}" = "prod" ]; then
+    echo 'PROXY_SSH_PORT=22' >> /opt/portfolio/.env
+else
+    echo 'PROXY_SSH_PORT=2222' >> /opt/portfolio/.env
 fi
 
 cat > /opt/portfolio/deploy.sh <<'EOF'

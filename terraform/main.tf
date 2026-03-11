@@ -219,6 +219,36 @@ resource "aws_security_group" "staging_sg" {
   }
 }
 
+resource "aws_security_group" "prod_sg" {
+  name        = "prod-sg"
+  description = "Allow SSH traffic"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "Allow port 22 from internet"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]   # accessible depuis Internet
+  }
+
+  ingress {
+    description = "Allow all vpc traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = [data.aws_vpc.default.cidr_block]
+  }
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 data "aws_subnets" "vpc_subnets" {
   filter {
     name   = "vpc-id"
@@ -268,8 +298,11 @@ resource "aws_instance" "app" {
   subnet_id = element(data.aws_subnets.vpc_subnets.ids, 0)
 
   vpc_security_group_ids = each.key == "staging" ? [
-    aws_security_group.staging_sg.id
-  ] : null
+      aws_security_group.staging_sg.id
+    ] : (each.key == "prod" ? [
+      aws_security_group.prod_sg.id
+    ] : null
+  )
 
   tags = {
     Name = "${var.app_name}-ec2-${each.key}"
@@ -293,10 +326,18 @@ resource "aws_route53_zone" "main" {
   name = var.domaine_name
 }
 
-resource "aws_route53_record" "app_record" {
+resource "aws_route53_record" "app_record_staging" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "portfolio-ssh.staging.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = 300
   records = [aws_instance.app["staging"].public_ip]
+}
+
+resource "aws_route53_record" "app_record_prod" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "portfolio-ssh.${aws_route53_zone.main.name}"
+  type    = "A"
+  ttl     = 300
+  records = [aws_instance.app["prod"].public_ip]
 }
