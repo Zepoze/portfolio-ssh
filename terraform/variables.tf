@@ -28,3 +28,13 @@ variable "domaine_name" {
   type = string
   default = "zepoze.fr"
 }
+
+variable "deactivate_dev" {
+  type = bool
+  default = false
+}
+
+variable "deactivate_staging" {
+  type = bool
+  default = false
+}

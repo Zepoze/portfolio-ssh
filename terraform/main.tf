@@ -31,7 +31,12 @@ locals {
   ecr_url = {
     for k,v in local.app_repos : k=> aws_ecr_repository.app[k].repository_url
   }
-  environment = toset(["dev","staging","prod"])
+  environment = toset(
+    [
+      for e in ["dev","staging","prod"]: 
+      e if !((e == "dev" && var.deactivate_dev) || (e == "staging" && var.deactivate_staging))
+    ]
+  )
 }
 
 resource "aws_iam_role" "ec2_role" {
@@ -320,7 +325,7 @@ resource "aws_eip_association" "eip_assoc" {
 }
 
 resource "aws_secretsmanager_secret" "ssh_hostkey" {
-  for_each = local.environment
+  for_each = toset(["dev","staging","prod"])
   name        = "portfolio-ssh/${each.key}/ssh_hostkey"
   description = "SSH host key for myapp ${each.key} environment"
 
@@ -336,6 +341,7 @@ resource "aws_route53_zone" "main" {
 }
 
 resource "aws_route53_record" "app_record_staging" {
+  count = var.deactivate_staging ? 0 : 1
   zone_id = aws_route53_zone.main.zone_id
   name    = "portfolio-ssh.staging.${aws_route53_zone.main.name}"
   type    = "A"
