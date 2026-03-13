@@ -5,7 +5,7 @@ An interactive developer portfolio accessible directly through SSH.
 Instead of visiting a website, users connect to a public SSH endpoint and navigate a slide-based presentation directly inside their terminal.
 
 ```bash
-ssh <host>
+ssh portfolio-ssh.zepoze.fr
 ```
 
 The SSH session launches a terminal presentation powered by Slides, creating a lightweight and unconventional portfolio experience.
@@ -72,7 +72,7 @@ Planned improvements:
 ### Slides Service
 
 Container running the terminal presentation powered by
-Slides.
+[Slides](https://github.com/maaslalani/slides).
 
 Slides are currently written in Markdown (slides.md).
 
