@@ -4,19 +4,21 @@ date: MM-dd-YYYY
 ---
 # 👋 Salut, moi c’est Pierre-Evens
 
+> ⏱️  temps de lecture: ~ 2min
+
 Bienvenue sur mon portfolio accessible en SSH.
 
 🎯 Objectif : alternance  
 
 🛠️  Domaine : administration système / infra / DevOps polyvalent
 
-> **→** : flèche droite pour continuer
-> **q** : pour quitter à tout moment
+📍 Rennes et sa périphérie (35)
+
+> **→** flèche droite pour continuer
+> **q | ctrl+c** : pour quitter à tout moment
 ---
 
 ## Mon parcours
-
-J’ai 25 ans.
 
 Pendant 5 ans, j’ai travaillé en :
 - support utilisateur
@@ -24,7 +26,7 @@ Pendant 5 ans, j’ai travaillé en :
 - maintenance de serveurs
 
 Aujourd’hui, je poursuis ce parcours  
-dans le cadre d’un **Diplôme d'ingénieur**, avec une approche plus technique et structurée.
+dans le cadre d’un **diplôme d'ingénieur en alternance sur 3 ans**, avec une approche plus technique et structurée.
 ---
 
 ## Ce que m’a appris le terrain
@@ -42,24 +44,11 @@ Ces réflexes guident encore ma façon de travailler.
 
 **J’aime :**
 - comprendre comment les systèmes fonctionnent vraiment
-- fiabiliser plutôt que bricoler
+- fiabiliser plutôt que de bricoler
 - automatiser pour réduire les erreurs humaines
 
-**Mon objectif :** concevoir des environnements simples, lisibles et maintenables.
----
+**Mon objectif :** concevoir et maintenir des environnements simples, lisibles et maintenables.
 
-## Compétences — développement
-
-Langages & scripting :
-- Go
-- Python
-- React,Node.js
-- Bash,PowerShell
-
-Je les utilise principalement pour :
-- automatiser
-- créer des outils internes
-- améliorer la fiabilité des systèmes
 ---
 
 ## Compétences — infrastructure
@@ -73,15 +62,30 @@ Je les utilise principalement pour :
 **Je cherche à :**
 
 - versionner l’infrastructure
-- documenter les choix
+- simplifier le déploiement
 - garder des architectures compréhensibles
+---
+
+## Compétences — développement
+
+Langages & scripting :
+- Go
+- Python
+- React, Node.js
+- Bash, PowerShell
+
+Je les utilise principalement pour :
+- automatiser
+- créer des outils internes
+- améliorer la fiabilité des systèmes
+
 ---
 
 ## Comment je travaille
 
 - je privilégie la clarté à la complexité
 - je préfère une solution robuste à une solution brillante
-- je n’ai aucun problème à dire “je ne sais pas”
+- je n'ai pas peur de me tromper ou de ne pas savoir
 ---
 
 ## Ce que je recherche
@@ -97,18 +101,20 @@ Une alternance qui me permettra :
 Ce portfolio est volontairement simple.
 
 - accès via SSH
-- aucun shell exposé
+- aucun shell n'est exposé
 - déploiement automatisé sur AWS
 - infrastructure déclarative
 
-**Objectif** : montrer ma façon de penser, pas empiler des technologies.
+🎯 **Objectif** : montrer ma manière de penser et créer un projet proche d'une production réaliste.
+
+> Plus de détail [juste ici ->](https://github.com/zepoze/portfolio-ssh)
+
 ---
 
-## Contact
+## Et maintenant ?
 
-- 🌐 Web : https://mon-domaine.com  
 - 🐙 GitHub : https://github.com/zepoze  
-- 📫 Contact : prenom@mon-domaine.com  
+- 📫 Contact : contact@zepoze.fr  
 
-Merci pour votre temps.  
+Merci d'avoir pris le temps.  
 > Déconnexion avec Ctrl+C.
