@@ -48,8 +48,8 @@ jobs:
               BASE=$(git rev-list -n 1 "$LAST_TAG")
               echo "base=$BASE" >> $GITHUB_OUTPUT
             else
-              # Pas de tag précédent → on prend le commit précédent du tag
-              echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
+              # Pas de tag précédent → on prend le commit initial du repo
+              echo "base=3c7f2d6dc05e968f59e0d4322421fef462eff1ed" >> $GITHUB_OUTPUT
             fi
 
           elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
