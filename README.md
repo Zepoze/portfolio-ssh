@@ -7,6 +7,8 @@ Instead of visiting a website, users connect to a public SSH endpoint and naviga
 ![demo](demo.gif)
 
 ```bash
+# portfolio-ssh.zepoze.fr:22 ssh public key
+# ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJtDqOjfuvB9UEtvUzxSlNCmsQ/0XYhdF3khXeZ0+f/4
 ssh portfolio-ssh.zepoze.fr
 ```
 
