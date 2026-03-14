@@ -4,6 +4,8 @@ An interactive developer portfolio accessible directly through SSH.
 
 Instead of visiting a website, users connect to a public SSH endpoint and navigate a slide-based presentation directly inside their terminal.
 
+![demo](demo.gif)
+
 ```bash
 ssh portfolio-ssh.zepoze.fr
 ```
