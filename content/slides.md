@@ -4,7 +4,20 @@ date: MM-dd-YYYY
 ---
 # 👋 Salut, moi c’est Pierre-Evens
 
-> ⏱️  temps de lecture: ~ 2min
+~~~bash -C
+s=$TARGET_MAX_TIMEOUT
+m=$((s/60))
+s=$((s%60))
+
+printf "> ⏱️  temps de lecture: ~ 2min"
+
+if [[ ! -z "$TARGET_MAX_TIMEOUT" ]]; then
+    printf " | ⚙️ Déconnexion automatique dans "
+    ((m>0)) && printf "%dmn " "$m"
+    ((m==0)) && printf "%ds " "$s"
+fi
+printf "\n"
+~~~
 
 Bienvenue sur mon portfolio accessible en SSH.
 
