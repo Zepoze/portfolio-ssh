@@ -17,4 +17,5 @@ services:
       - LANG=C.UTF-8
       - TERM=xterm-256color
       - SSH_TRUSTED_USERS_CA=${SSH_TRUSTED_USERS_CA}
+      - TARGET_MAX_TIMEOUT=${TARGET_MAX_TIMEOUT:-360}
     

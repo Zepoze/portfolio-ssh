@@ -1,8 +1,6 @@
-package server
+package proxy
 
 import (
-	"net"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
@@ -10,11 +8,9 @@ import (
 	"github.com/charmbracelet/wishlist/blocking"
 	"github.com/charmbracelet/wishlist/multiplex"
 	"github.com/muesli/termenv"
-	"github.com/zepoze/ssh-portfolio/proxy/internal/model"
-	"github.com/zepoze/ssh-portfolio/proxy/internal/proxy"
 )
 
-func ProxyMiddlewareProgram(abort <-chan struct{}) wish.Middleware {
+func MiddlewareProgram(modelHandler func() Model) wish.Middleware {
 	newProg := func(m tea.Model, opts ...tea.ProgramOption) *tea.Program {
 		p := tea.NewProgram(m, opts...)
 		return p
@@ -25,7 +21,7 @@ func ProxyMiddlewareProgram(abort <-chan struct{}) wish.Middleware {
 		multiplexDoneCh := make(chan bool, 1)
 		listStdin, handoffStdin := multiplex.Reader(s, multiplexDoneCh)
 
-		client := &proxy.RemoteClient{
+		client := &RemoteClient{
 			Session: s,
 			Stdin:   handoffStdin,
 			Cleanup: func() {
@@ -40,17 +36,13 @@ func ProxyMiddlewareProgram(abort <-chan struct{}) wish.Middleware {
 			return nil
 		}
 
-		target := net.JoinHostPort(
-			getEnvWithDefault("TARGET_HOST", "localhost"),
-			getEnvWithDefault("TARGET_PORT", "23234"),
-		)
+		m := modelHandler()
 
-		m := model.NewModel(client, target)
+		m.SetClient(client)
 
 		prog := newProg(m, tea.WithInput(blocking.New(listStdin)), tea.WithOutput(s))
 		go func() {
-			<-abort
-			s.Close()
+			<-s.Context().Done()
 			multiplexDoneCh <- true
 		}()
 

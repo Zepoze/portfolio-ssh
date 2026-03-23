@@ -12,13 +12,14 @@ import (
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
+	"github.com/zepoze/ssh-portfolio/proxy/internal/proxy"
 )
 
 const (
 	defaultHostKeyPath = "ssh_host_key"
 )
 
-func Run(ctx context.Context, host, port string, hostKeyPath string, trustedCAPublicKeyPath string) error {
+func Run(ctx context.Context, host, port string, hostKeyPath string, trustedCAPublicKeyPath string, modelHandler func() proxy.Model) error {
 
 	if hostKeyPath == "" {
 		hostKeyPath = defaultHostKeyPath
@@ -34,7 +35,7 @@ func Run(ctx context.Context, host, port string, hostKeyPath string, trustedCAPu
 	options := []ssh.Option{
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithMiddleware(
-			ProxyMiddlewareProgram(globalCtx.Done()),
+			proxy.MiddlewareProgram(modelHandler),
 			logging.Middleware(),
 		),
 		wish.WithHostKeyPath(hostKeyPath),
@@ -98,12 +99,4 @@ func ensureHostKeyExistence(hostKeyPath string, strict bool) error {
 		log.Warn("no host key configured, using a new one (this is insecure!)")
 	}
 	return nil
-}
-
-func getEnvWithDefault(key, def string) string {
-	val, exists := os.LookupEnv(key)
-	if !exists {
-		return def
-	}
-	return val
 }

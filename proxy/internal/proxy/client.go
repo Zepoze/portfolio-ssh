@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wishlist/blocking"
+	"github.com/muesli/termenv"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -33,22 +35,24 @@ type RemoteClient struct {
 	Abort <-chan struct{}
 }
 
-func (c *RemoteClient) For(target string) tea.ExecCommand {
+func (c *RemoteClient) For(context context.Context, target TargetHost) tea.ExecCommand {
 	return &RemoteSession{
 		Target:        target,
 		ParentSession: c.Session,
 		Stdin:         c.Stdin,
 		Cleanup:       c.Cleanup,
-		Abort:         c.Abort,
+		Context:       context,
 	}
 }
 
 type RemoteSession struct {
 	// endpoint we are connecting to
-	Target string
+	Target TargetHost
 
 	// the parent session (ie the session running the listing)
 	ParentSession ssh.Session
+
+	Context context.Context
 
 	Stdin   io.Reader
 	Cleanup func()
@@ -73,7 +77,7 @@ func (s *RemoteSession) Run() error {
 		Timeout:         time.Second * 5,
 	}
 
-	conn, session, cl, err := createSession(conf, s.Target)
+	conn, session, cl, err := createSession(conf, s.Target.String())
 	if err != nil {
 		return err
 	}
@@ -105,13 +109,16 @@ func (s *RemoteSession) Run() error {
 
 	shellErr := make(chan error, 1)
 	go func() {
-		shellErr <- shellAndWait(session)
+		shellErr <- shellAndWait(session, s.Target.UseAltScreen)
 	}()
 
 	select {
 	case err := <-shellErr:
+		if errors.Is(err, &gossh.ExitMissingError{}) {
+
+		}
 		return err
-	case <-s.Abort:
+	case <-s.Context.Done():
 		session.Close()
 		conn.Close()
 		log.Info("aborting remote session")
@@ -136,13 +143,16 @@ func (s *RemoteSession) notifyWindowChanges(session *gossh.Session, done <-chan 
 	}
 }
 
-func shellAndWait(session *gossh.Session) error {
+func shellAndWait(session *gossh.Session, useAltScreen bool) error {
 	if err := session.Shell(); err != nil {
 		return fmt.Errorf("failed to start shell: %w", err)
 	}
 	if err := session.Wait(); err != nil {
 		if errors.Is(err, &gossh.ExitMissingError{}) {
 			log.Info("exit was missing, assuming exit 0")
+			if useAltScreen {
+				session.Stdout.Write([]byte(termenv.CSI + termenv.ExitAltScreenSeq))
+			}
 			return nil
 		}
 		return fmt.Errorf("session failed: %w", err)
