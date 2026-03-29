@@ -39,6 +39,7 @@ func Run(ctx context.Context, host, port string, hostKeyPath string, trustedCAPu
 			logging.Middleware(),
 		),
 		wish.WithHostKeyPath(hostKeyPath),
+		ssh.WrapConn(proxy.WrapConnWithRateLimit(proxy.NewAbuseManager(5*time.Minute, 10*time.Minute, proxy.NewInMemoryBanStore(time.Hour, 2*time.Hour)))),
 	}
 
 	if trustedCAPublicKeyPath != "" {
