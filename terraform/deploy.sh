@@ -11,7 +11,10 @@ if [ ! "$CHANNEL" = "dev" ] && [ ! -f "proxy/ssh_host_key" ]; then
     exit 1
 fi
 
-sudo aws s3 cp s3://$ARTEFACT_BUCKET_FOLDER/slides.md "$(dirname "$0")/slides/slides.md"
+SLIDE_FILENAME="$(dirname "$0")/slides/slides.md"
+
+sudo aws s3 cp s3://$ARTEFACT_BUCKET_FOLDER/slides.md "$SLIDE_FILENAME"
+sudo chmod 555 "$SLIDE_FILENAME"
 
 TRUSTED_USERS_CA_FILE="$(dirname "$0")/proxy/users_ca.pub"
 rm -f "$TRUSTED_USERS_CA_FILE" 2> /dev/null || true
