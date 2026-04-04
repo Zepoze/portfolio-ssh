@@ -5,6 +5,8 @@ services:
       - "23234:23234"
     volumes:
       - ./slides:/app
+    environment:
+      - TARGET_MAX_TIMEOUT=${TARGET_MAX_TIMEOUT:-360}
   proxy:
     image: ${PROXY_IMAGE}
     ports:
@@ -19,4 +21,5 @@ services:
       - SSH_HOST_KEY=/workspace/ssh_host_key
       - STRICT=${STRICT}
       - SSH_TRUSTED_USERS_CA=${SSH_TRUSTED_USERS_CA}
+      - TARGET_MAX_TIMEOUT=${TARGET_MAX_TIMEOUT:-360}
     
