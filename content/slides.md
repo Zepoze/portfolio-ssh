@@ -12,7 +12,7 @@ s=$((s%60))
 printf "> ⏱️  temps de lecture: ~ 2min"
 
 if [[ ! -z "$TARGET_MAX_TIMEOUT" ]]; then
-    printf " | ⚙️ Déconnexion automatique dans "
+    printf " | ⚙️  Déconnexion automatique dans "
     ((m>0)) && printf "%dmn " "$m"
     ((m==0)) && printf "%ds " "$s"
 fi
