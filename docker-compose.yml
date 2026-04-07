@@ -9,15 +9,15 @@ services:
       - TARGET_MAX_TIMEOUT=${TARGET_MAX_TIMEOUT:-360}
   proxy:
     build: ./proxy
-    ports:
-      - "2222:2222"
+    network_mode: host
     volumes:
       - ${VOLUME_PROXY_SSH_HOST_KEY:-/dev/null}:/workspace/ssh_user_ca_key.pub
     environment:
-      - TARGET_HOST=slides
+      - TARGET_HOST=localhost
       - TARGET_PORT=23234
       - LANG=C.UTF-8
       - TERM=xterm-256color
       - SSH_TRUSTED_USERS_CA=${SSH_TRUSTED_USERS_CA}
+      - SSH_HOST_PORT=${PROXY_SSH_PORT:-2222}
       - TARGET_MAX_TIMEOUT=${TARGET_MAX_TIMEOUT:-360}
     

@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	host = "0.0.0.0"
-	port = "2222"
+	host       = "0.0.0.0"
+	defaulPort = "2222"
 )
 
 func main() {
@@ -37,6 +37,16 @@ func main() {
 		portInt = 23234
 	}
 
+	var proxyPort string
+	proxyPort = os.Getenv("SSH_HOST_PORT")
+	if proxyPort == "" {
+		proxyPort = defaulPort
+	} else if _, err = strconv.Atoi(proxyPort); err != nil {
+		log.Error("Invalid ENV port number")
+		os.Exit(1)
+		return
+	}
+
 	target := proxy.TargetHost{
 		Host:               os.Getenv("TARGET_HOST"),
 		Port:               portInt,
@@ -51,7 +61,7 @@ func main() {
 	err = server.Run(
 		ctx,
 		host,
-		port,
+		proxyPort,
 		os.Getenv("SSH_HOST_KEY"),
 		os.Getenv("SSH_TRUSTED_USERS_CA"),
 		modelHandler,
