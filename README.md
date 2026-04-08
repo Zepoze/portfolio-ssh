@@ -66,6 +66,8 @@ Responsibilities:
 - public SSH entrypoint
 - session forwarding
 - connection handling
+- per-IP rate limiting
+- session timeout enforcement
 
 Planned improvements:
 
@@ -91,6 +93,15 @@ Main components:
 - Terraform infrastructure provisioning
 
 Everything is designed to be reproducible and automated.
+
+## Security Controls
+
+To protect the service from abuse and long-running sessions, the proxy implements:
+
+- **IP-based rate limiting** to prevent excessive connection attempts
+- **Maximum SSH session duration** to automatically terminate inactive or abandoned sessions
+
+These controls help keep the service available while still allowing visitors to explore the portfolio interactively.
 
 ## CI/CD
 
@@ -133,7 +144,6 @@ Planned improvements:
 
 - connection logging
 - Prometheus metrics
-- rate limiting on SSH connections
 - multi-language slides
 - analytics on connections
 
